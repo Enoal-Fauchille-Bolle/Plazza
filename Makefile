@@ -17,7 +17,7 @@ TESTS = ./tests/
 # Sources
 MAIN = $(SRCDIR)main.cpp
 SRC =	\
-
+		$(SRCDIR)OptionParser.cpp	\
 
 TESTS_SRC =	\
 

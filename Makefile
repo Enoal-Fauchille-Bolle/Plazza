@@ -18,6 +18,7 @@ TESTS = ./tests/
 MAIN = $(SRCDIR)main.cpp
 SRC =	\
 		$(SRCDIR)OptionParser.cpp	\
+		$(SRCDIR)CommandInterpreter.cpp	\
 
 TESTS_SRC =	\
 

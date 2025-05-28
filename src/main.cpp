@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "OptionParser.hpp"
+#include "CommandInterpreter.hpp"
 
 int main(int ac, char **av)
 {
@@ -24,5 +25,8 @@ int main(int ac, char **av)
     std::cout << "Multiplier: " << parser.getMultiplier() << std::endl;
     std::cout << "Cooks: " << parser.getCooks() << std::endl;
     std::cout << "Restock Delay: " << parser.getRestockDelay() << std::endl;
+    CommandInterpreter interpreter;
+    interpreter.run();
+    std::cout << "Exiting Plazza reception." << std::endl;
     return 0;
 }

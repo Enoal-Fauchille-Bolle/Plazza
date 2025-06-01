@@ -145,6 +145,16 @@ void CommandInterpreter::handleStatusCommand()
     std::cout << "  - Ingredient stocks: [TODO]" << std::endl;
 }
 
+void CommandInterpreter::displayUsageHelp() const
+{
+    std::cerr << "Usage: TYPE SIZE NUMBER [; TYPE SIZE NUMBER]*" << std::endl;
+    std::cerr << "  TYPE: regina, margarita, americana, fantasia" << std::endl;
+    std::cerr << "  SIZE: S, M, L, XL, XXL" << std::endl;
+    std::cerr << "  NUMBER: xN (where N is a positive integer)" << std::endl;
+    std::cerr << "Example: regina XXL x2; fantasia M x3; margarita S x1" << std::endl;
+    std::cerr << "Other commands: status, quit, exit" << std::endl;
+}
+
 int CommandInterpreter::runCommand(std::string& line)
 {
     std::vector<PizzaOrder> orders;
@@ -152,6 +162,8 @@ int CommandInterpreter::runCommand(std::string& line)
     line.erase(0, line.find_first_not_of(" \t"));
     line.erase(line.find_last_not_of(" \t") + 1);
     if (line.empty()) {
+        std::cerr << "Error: Empty command." << std::endl;
+        displayUsageHelp();
         return 0;
     }
     if (line == "quit" || line == "exit") {
@@ -163,20 +175,15 @@ int CommandInterpreter::runCommand(std::string& line)
     }
     try {
         orders = parsePizzaOrder(line);
-        if (!orders.empty()) {
-            handlePizzaOrder(orders);
+        if (orders.empty()) {
+            std::cerr << "Error: No valid pizza orders found." << std::endl;
+            displayUsageHelp();
+            return 0;
         }
+        handlePizzaOrder(orders);
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
-        std::cerr << "Usage: TYPE SIZE NUMBER [; TYPE SIZE NUMBER]*"
-                  << std::endl;
-        std::cerr << "  TYPE: regina, margarita, americana, fantasia"
-                  << std::endl;
-        std::cerr << "  SIZE: S, M, L, XL, XXL" << std::endl;
-        std::cerr << "  NUMBER: xN (where N is a positive integer)"
-                  << std::endl;
-        std::cerr << "Example: regina XXL x2; fantasia M x3; margarita S x1"
-                  << std::endl;
+        displayUsageHelp();
     }
     return 0;
 }
@@ -188,7 +195,12 @@ void CommandInterpreter::run()
     std::cout << "Plazza Pizza Reception - Ready to take orders!" << std::endl;
     std::cout << "Commands: [pizza orders], status, quit/exit" << std::endl;
     while (std::cout << "> ", std::getline(std::cin, line)) {
-        if (line != "" && runCommand(line) == 1)
+        try {
+            if (line != "" && runCommand(line) == 1)
+                break;
+        } catch (const std::exception& e) {
+            std::cerr << "Fatal error: " << e.what() << std::endl;
             break;
+        }
     }
 }

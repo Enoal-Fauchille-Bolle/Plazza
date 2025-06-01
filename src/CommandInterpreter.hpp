@@ -42,6 +42,8 @@ class CommandInterpreter {
                                      const std::string& size,
                                      const std::string& number);
         std::string trimWhitespace(const std::string& str);
+
+        void displayUsageHelp() const;
 };
 
 #endif /* !COMMANDINTERPRETER_HPP_ */

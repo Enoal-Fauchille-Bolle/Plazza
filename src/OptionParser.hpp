@@ -26,12 +26,13 @@ class OptionParser {
         void displayHelpPage() const;
 
     private:
-        double _multiplier;
-        int _cooks;
-        int _restockDelay;
+        double _multiplier = 0.0;
+        int _cooks = 0;
+        int _restockDelay = 0;
         bool _helpPage = false;
         std::string _errorMessage = "";
 
+        void validateArguments(int ac, char **av);
 };
 
 #endif /* !OPTIONPARSER_HPP_ */

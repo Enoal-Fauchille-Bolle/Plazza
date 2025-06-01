@@ -18,6 +18,10 @@
  */
 OptionParser::OptionParser(int ac, char **av)
 {
+    if (ac < 2) {
+        _errorMessage = "No arguments provided. Use -h or --help for usage information.";
+        return;
+    }
     if (std::string(av[1]) == "-h" || std::string(av[1]) == "--help") {
         _helpPage = true;
         return;
@@ -26,23 +30,50 @@ OptionParser::OptionParser(int ac, char **av)
         _errorMessage = "Invalid number of arguments. Expected 3 arguments.";
         return;
     }
+    validateArguments(ac, av);
+}
+
+void OptionParser::validateArguments(int ac, char **av)
+{
+    (void)ac;
     try {
         _multiplier = std::stod(av[1]);
-    } catch (const std::invalid_argument &e) {
-        _errorMessage =
-            "Invalid argument: " + std::string(av[1]) + " (must be a double)";
+        if (_multiplier <= 0) {
+            _errorMessage = "Multiplier must be a positive number.";
+            return;
+        }
+    } catch (const std::invalid_argument &) {
+        _errorMessage = "Invalid argument: " + std::string(av[1]) + " (must be a positive double)";
+        return;
+    } catch (const std::out_of_range &) {
+        _errorMessage = "Multiplier value is out of range.";
+        return;
     }
     try {
         _cooks = std::stoi(av[2]);
-    } catch (const std::invalid_argument &e) {
-        _errorMessage =
-            "Invalid argument: " + std::string(av[2]) + " (must be an integer)";
+        if (_cooks <= 0) {
+            _errorMessage = "Number of cooks must be a positive integer.";
+            return;
+        }
+    } catch (const std::invalid_argument &) {
+        _errorMessage = "Invalid argument: " + std::string(av[2]) + " (must be a positive integer)";
+        return;
+    } catch (const std::out_of_range &) {
+        _errorMessage = "Number of cooks is out of range.";
+        return;
     }
     try {
         _restockDelay = std::stoi(av[3]);
-    } catch (const std::invalid_argument &e) {
-        _errorMessage =
-            "Invalid argument: " + std::string(av[3]) + " (must be an integer)";
+        if (_restockDelay <= 0) {
+            _errorMessage = "Restock delay must be a positive integer.";
+            return;
+        }
+    } catch (const std::invalid_argument &) {
+        _errorMessage = "Invalid argument: " + std::string(av[3]) + " (must be a positive integer)";
+        return;
+    } catch (const std::out_of_range &) {
+        _errorMessage = "Restock delay is out of range.";
+        return;
     }
 }
 

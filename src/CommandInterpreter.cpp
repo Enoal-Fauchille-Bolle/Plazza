@@ -18,8 +18,17 @@ bool CommandInterpreter::isValidPizzaType(const std::string& type) const
     std::transform(lowerType.begin(), lowerType.end(), lowerType.begin(),
                    ::tolower);
 
-    return (lowerType == "regina" || lowerType == "margarita" ||
-            lowerType == "americana" || lowerType == "fantasia");
+    // Check default pizza types
+    bool isDefault = (lowerType == "regina" || lowerType == "margarita" ||
+                      lowerType == "americana" || lowerType == "fantasia");
+
+    // Check custom pizza types
+    if (!isDefault) {
+        // TODO: Replace with actual custom pizza storage
+        // return customPizzas.find(lowerType) != customPizzas.end();
+    }
+
+    return isDefault;
 }
 
 bool CommandInterpreter::isValidPizzaSize(const std::string& size) const
@@ -145,14 +154,108 @@ void CommandInterpreter::handleStatusCommand()
     std::cout << "  - Ingredient stocks: [TODO]" << std::endl;
 }
 
+bool CommandInterpreter::isValidCookingTime(const std::string& timeStr) const
+{
+    if (timeStr.empty()) {
+        return false;
+    }
+    for (char c : timeStr) {
+        if (!std::isdigit(c)) {
+            return false;
+        }
+    }
+    int time = std::stoi(timeStr);
+    return (time > 0 && time <= 3600);  // Maximum 1 hour cooking time
+}
+
+bool CommandInterpreter::isValidIngredient(const std::string& ingredient) const
+{
+    // TODO: Check if ingredient is valid using the kitchen's ingredient list
+    if (ingredient.empty()) {
+        return false;
+    }
+    for (char c : ingredient) {
+        if (!std::isalpha(c) && c != ' ' && c != '-') {
+            return false;
+        }
+    }
+    return true;
+}
+
+CustomPizza CommandInterpreter::parseCreateCommand(
+    const std::string& createArgs)
+{
+    std::istringstream iss(createArgs);
+    std::string name, cookingTimeStr;
+    CustomPizza pizza;
+
+    if (!(iss >> name >> cookingTimeStr)) {
+        throw std::invalid_argument(
+            "Create command requires at least name and cooking time");
+    }
+    if (!isValidIngredient(name)) {
+        throw std::invalid_argument("Invalid pizza name: " + name);
+    }
+    if (!isValidCookingTime(cookingTimeStr)) {
+        throw std::invalid_argument("Invalid cooking time: " + cookingTimeStr);
+    }
+    pizza.name = name;
+    pizza.cookingTime = std::stoi(cookingTimeStr);
+    std::string ingredient;
+    while (iss >> ingredient) {
+        if (!isValidIngredient(ingredient)) {
+            throw std::invalid_argument("Invalid ingredient: " + ingredient);
+        }
+        pizza.ingredients.push_back(ingredient);
+    }
+    if (pizza.ingredients.empty())
+        throw std::invalid_argument("Pizza must have at least one ingredient");
+    return pizza;
+}
+
+void CommandInterpreter::handleCreateCommand(const std::string& createArgs)
+{
+    CustomPizza pizza = parseCreateCommand(createArgs);
+    std::string lowerName = pizza.name;
+    std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(),
+                   ::tolower);
+
+    // TODO: Check if pizza already exists
+    // if (customPizzas.find(lowerName) != customPizzas.end()) {
+    //     std::cout << "Warning: Pizza '" << pizza.name
+    //               << "' already exists. Overwriting..." << std::endl;
+    // }
+
+    // TODO: Add pizza to the kitchen's custom pizzas
+    // customPizzas[lowerName] = pizza;
+
+    std::cout << "Created pizza '" << pizza.name << "' with cooking time "
+              << pizza.cookingTime << " seconds and ingredients: ";
+    for (size_t i = 0; i < pizza.ingredients.size(); ++i) {
+        std::cout << pizza.ingredients[i];
+        if (i < pizza.ingredients.size() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << std::endl;
+}
+
 void CommandInterpreter::displayUsageHelp() const
 {
     std::cerr << "Usage: TYPE SIZE NUMBER [; TYPE SIZE NUMBER]*" << std::endl;
-    std::cerr << "  TYPE: regina, margarita, americana, fantasia" << std::endl;
+    std::cerr << "  TYPE: regina, margarita, americana, fantasia (or custom "
+                 "pizza names)"
+              << std::endl;
     std::cerr << "  SIZE: S, M, L, XL, XXL" << std::endl;
     std::cerr << "  NUMBER: xN (where N is a positive integer)" << std::endl;
-    std::cerr << "Example: regina XXL x2; fantasia M x3; margarita S x1" << std::endl;
-    std::cerr << "Other commands: status, quit, exit" << std::endl;
+    std::cerr << "Example: regina XXL x2; fantasia M x3; margarita S x1"
+              << std::endl;
+    std::cerr << "Other commands:" << std::endl;
+    std::cerr << "  status - Show kitchen status" << std::endl;
+    std::cerr << "  create <name> <cooking_time> <ingredients>... - Create "
+                 "custom pizza"
+              << std::endl;
+    std::cerr << "  quit/exit - Exit the program" << std::endl;
 }
 
 int CommandInterpreter::runCommand(std::string& line)
@@ -171,6 +274,23 @@ int CommandInterpreter::runCommand(std::string& line)
     }
     if (line == "status") {
         handleStatusCommand();
+        return 0;
+    }
+    if (line.substr(0, 6) == "create") {
+        std::string createArgs = line.substr(6);
+        createArgs = trimWhitespace(createArgs);
+        if (createArgs.empty()) {
+            std::cerr << "Error: Create command requires arguments."
+                      << std::endl;
+            displayUsageHelp();
+            return 0;
+        }
+        try {
+            handleCreateCommand(createArgs);
+        } catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+            displayUsageHelp();
+        }
         return 0;
     }
     try {
